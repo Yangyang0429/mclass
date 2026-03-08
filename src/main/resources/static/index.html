@@ -15,24 +15,12 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding-top: 80px; /* 글자 공간 확보 */
+    padding-top: 80px;
 }
 
-h1 { 
-    color: #333; 
-    text-align: center; 
-    z-index: 10;
-    position: relative;
-}
+h1, p { text-align: center; z-index: 10; position: relative; color: #333; }
 
-p { 
-    color: #666; 
-    text-align: center; 
-    z-index: 10;
-    position: relative;
-}
-
-/* 닥스훈트 이미지 중앙 고정, 글자 위에 가리지 않도록 z-index 낮춤 */
+/* 닥스훈트 중앙 고정 + 꼬리 흔들기 */
 #dog {
     width: 300px;
     border-radius: 12px;
@@ -41,7 +29,16 @@ p {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 1; /* 글자보다 아래 */
+    z-index: 2;
+    animation: wagTail 0.25s infinite;
+}
+
+@keyframes wagTail {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    25% { transform: translate(-50%, -50%) rotate(3deg); }
+    50% { transform: translate(-50%, -50%) rotate(-3deg); }
+    75% { transform: translate(-50%, -50%) rotate(3deg); }
+    100% { transform: translate(-50%, -50%) rotate(0deg); }
 }
 
 /* 발자국 스타일 */
@@ -49,42 +46,100 @@ p {
     position: absolute;
     font-size: 24px;
     pointer-events: none;
-    opacity: 0.8;
     transform: translate(-50%, -50%);
     animation: fadePaw 3s forwards;
-    z-index: 5; /* 이미지 위에 표시 */
+    z-index: 5;
 }
 
 @keyframes fadePaw {
     0% { opacity: 1; }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
 }
+
+/* 공 */
+#ball {
+    position: fixed;
+    bottom: 120px;
+    left: -60px;
+    font-size: 40px;
+    z-index: 3;
+    animation: rollBall 10s linear infinite;
+}
+
+@keyframes rollBall {
+    0% { left: -60px; transform: rotate(0deg); }
+    100% { left: 110%; transform: rotate(720deg); }
+}
+
+/* 말풍선 */
+#speech {
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 20px;
+    display: none;
+    z-index: 10;
+}
 </style>
 </head>
-<body>
 
+<body>
 <h1>Tomcat Web Server</h1>
 <h1>🐶 Welcome</h1>
 <p>닥스훈트 입니다!</p>
 
 <img id="dog" src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg">
+<div id="ball">🎾</div>
+<div id="speech">멍멍!</div>
 
 <script>
-// 마우스를 따라가는 발자국
+// 🐾 마우스를 따라가는 발자국
 document.addEventListener("mousemove", (e) => {
     const paw = document.createElement("div");
     paw.className = "paw";
     paw.innerHTML = "🐾";
+
+    // 클릭했으면 랜덤 색
+    if(mouseClicked) {
+        const colors = ["#FF6347","#FFD700","#ADFF2F","#00BFFF","#FF69B4"];
+        paw.style.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+
     paw.style.left = e.pageX + "px";
     paw.style.top = e.pageY + "px";
     document.body.appendChild(paw);
 
-    // 3초 후 발자국 제거
-    setTimeout(() => {
-        paw.remove();
-    }, 3000);
+    setTimeout(() => { paw.remove(); }, 3000);
 });
-</script>
 
+let mouseClicked = false;
+document.addEventListener("mousedown", () => { mouseClicked = true; });
+document.addEventListener("mouseup", () => { mouseClicked = false; });
+
+// 💬 클릭하면 말풍선 등장
+document.addEventListener("click", () => {
+    const speech = document.getElementById("speech");
+    speech.style.display = "block";
+    setTimeout(() => { speech.style.display = "none"; }, 1000);
+});
+
+// 🐶 공 따라 고개 돌리기
+const dog = document.getElementById("dog");
+const ball = document.getElementById("ball");
+
+setInterval(() => {
+    const ballRect = ball.getBoundingClientRect();
+    const dogRect = dog.getBoundingClientRect();
+    const dx = ballRect.left + 20 - (dogRect.left + dogRect.width/2);
+    const maxRotate = 15; // 최대 15도
+    const rotate = Math.max(Math.min(dx/10, maxRotate), -maxRotate);
+    dog.style.transform = `translate(-50%, -50%) rotate(${rotate}deg)`;
+}, 50);
+</script>
 </body>
 </html>
