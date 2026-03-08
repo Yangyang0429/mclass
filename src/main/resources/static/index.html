@@ -1,180 +1,36 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Dachshund 3D Game</title>
-
-<style>
-body{
-margin:0;
-overflow:hidden;
-font-family:Arial;
-}
-
-#ui{
-position:absolute;
-top:10px;
-left:10px;
-font-size:20px;
-background:white;
-padding:8px;
-border-radius:8px;
-}
-</style>
-
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding-top: 80px;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+        img {
+            margin-top: 30px;
+            width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+    </style>
 </head>
-
 <body>
+    <h1> Tomcat Web Server </h1>
+    <h1>🐶 Welcome </h1>
+    <p>닥스훈트 입니다!</p>
 
-<div id="ui">
-Score : <span id="score">0</span><br>
-WASD 이동
-</div>
+    <img src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg" alt="닥스훈트">
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-
-<script>
-
-let scene=new THREE.Scene()
-
-let camera=new THREE.PerspectiveCamera(
-75,
-window.innerWidth/window.innerHeight,
-0.1,
-1000
-)
-
-let renderer=new THREE.WebGLRenderer()
-
-renderer.setSize(window.innerWidth,window.innerHeight)
-
-document.body.appendChild(renderer.domElement)
-
-
-// 빛
-let light=new THREE.DirectionalLight(0xffffff,1)
-light.position.set(10,20,10)
-scene.add(light)
-
-scene.add(new THREE.AmbientLight(0x888888))
-
-
-// 바닥
-let floorGeo=new THREE.PlaneGeometry(100,100)
-let floorMat=new THREE.MeshStandardMaterial({color:0x77cc77})
-
-let floor=new THREE.Mesh(floorGeo,floorMat)
-
-floor.rotation.x=-Math.PI/2
-
-scene.add(floor)
-
-
-// 닥스훈트 (간단한 박스 캐릭터)
-let dogGeo=new THREE.BoxGeometry(1.5,0.5,0.5)
-let dogMat=new THREE.MeshStandardMaterial({color:0x8b4513})
-
-let dog=new THREE.Mesh(dogGeo,dogMat)
-
-dog.position.y=0.25
-
-scene.add(dog)
-
-
-// 공
-let ballGeo=new THREE.SphereGeometry(0.3,16,16)
-let ballMat=new THREE.MeshStandardMaterial({color:0xffaa00})
-
-let ball=new THREE.Mesh(ballGeo,ballMat)
-
-scene.add(ball)
-
-function randomBall(){
-
-ball.position.x=Math.random()*20-10
-ball.position.z=Math.random()*20-10
-ball.position.y=0.3
-
-}
-
-randomBall()
-
-
-// 점수
-let score=0
-
-
-// 키 입력
-let keys={}
-
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
-
-
-// 이동
-function move(){
-
-let speed=0.1
-
-if(keys["w"]) dog.position.z-=speed
-if(keys["s"]) dog.position.z+=speed
-if(keys["a"]) dog.position.x-=speed
-if(keys["d"]) dog.position.x+=speed
-
-}
-
-
-// 충돌 체크
-function checkBall(){
-
-let dx=dog.position.x-ball.position.x
-let dz=dog.position.z-ball.position.z
-
-let dist=Math.sqrt(dx*dx+dz*dz)
-
-if(dist<0.8){
-
-score++
-
-document.getElementById("score").innerText=score
-
-randomBall()
-
-}
-
-}
-
-
-// 카메라 따라가기
-function followCamera(){
-
-camera.position.x=dog.position.x
-camera.position.z=dog.position.z+5
-camera.position.y=4
-
-camera.lookAt(dog.position)
-
-}
-
-
-// 루프
-function animate(){
-
-requestAnimationFrame(animate)
-
-move()
-
-checkBall()
-
-followCamera()
-
-renderer.render(scene,camera)
-
-}
-
-animate()
-
-</script>
-
+    <p>Powered by 🦴</p>
 </body>
 </html>
