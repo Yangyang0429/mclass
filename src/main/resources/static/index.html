@@ -2,209 +2,231 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Extreme Maze Game</title>
+<title>3D Maze Game</title>
 
 <style>
 
 body{
-    margin:0;
-    background:#111;
-    color:white;
-    font-family:Arial;
-    text-align:center;
+margin:0;
+overflow:hidden;
+font-family:Arial;
+background:black;
+color:white;
 }
 
-#game{
-    width:600px;
-    height:600px;
-    margin:auto;
-    overflow:hidden;
-    border:3px solid white;
-    position:relative;
-}
-
-#maze{
-    position:absolute;
-    display:grid;
-}
-
-.cell{
-    width:20px;
-    height:20px;
-}
-
-.wall{background:#333;}
-.path{background:#1a1a1a;}
-
-.goal{background:red;}
-
-.player{
-    position:absolute;
-    width:20px;
-    height:20px;
-    background:#00bfff;
-    border-radius:50%;
-    z-index:10;
-}
-
-.paw{
-    position:absolute;
-    font-size:12px;
-    opacity:0.8;
-    pointer-events:none;
+#ui{
+position:absolute;
+top:10px;
+left:10px;
+z-index:10;
+font-size:18px;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<h1>🔥 Extreme Maze Challenge</h1>
-<p>Arrow Keys 로 이동</p>
-<p id="stage">Stage 1</p>
-
-<div id="game">
-<div id="maze"></div>
-<div id="player"></div>
+<div id="ui">
+Stage : <span id="stage">1</span><br>
+WASD 이동 / 마우스 시점
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 
 <script>
 
-let stage=1
-let size=21
-let maze=[]
-let player={x:1,y:1}
+let scene = new THREE.Scene()
 
-const mazeDiv=document.getElementById("maze")
-const playerDiv=document.getElementById("player")
+let camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
+)
+
+let renderer = new THREE.WebGLRenderer()
+
+renderer.setSize(window.innerWidth,window.innerHeight)
+
+document.body.appendChild(renderer.domElement)
+
+let light = new THREE.PointLight(0xffffff,1)
+light.position.set(10,20,10)
+
+scene.add(light)
+
+let ambient = new THREE.AmbientLight(0x555555)
+scene.add(ambient)
+
+let stage=1
+
+let mazeSize=15
+let maze=[]
+
+let walls=[]
+
+let goal
 
 function generateMaze(){
 
-size=21+stage*4
 maze=[]
-mazeDiv.innerHTML=""
+walls.forEach(w=>scene.remove(w))
+walls=[]
 
-for(let y=0;y<size;y++){
+for(let y=0;y<mazeSize;y++){
+
 maze[y]=[]
-for(let x=0;x<size;x++){
-maze[y][x]=1
-}
-}
 
-function carve(x,y){
-let dirs=[[2,0],[-2,0],[0,2],[0,-2]]
-dirs.sort(()=>Math.random()-0.5)
+for(let x=0;x<mazeSize;x++){
 
-for(let d of dirs){
-let nx=x+d[0]
-let ny=y+d[1]
+let wall=Math.random()<0.3
 
-if(nx>0 && ny>0 && nx<size-1 && ny<size-1 && maze[ny][nx]==1){
-maze[ny][nx]=0
-maze[y+d[1]/2][x+d[0]/2]=0
-carve(nx,ny)
-}
-}
-}
+if(x==1 && y==1) wall=false
+if(x==mazeSize-2 && y==mazeSize-2) wall=false
 
-maze[1][1]=0
-carve(1,1)
+maze[y][x]=wall?1:0
 
-maze[size-2][size-2]=2
+if(wall){
 
-drawMaze()
+let geo=new THREE.BoxGeometry(1,2,1)
+let mat=new THREE.MeshStandardMaterial({color:0x444444})
 
-player={x:1,y:1}
-updateCamera()
+let cube=new THREE.Mesh(geo,mat)
+
+cube.position.set(x,1,y)
+
+scene.add(cube)
+
+walls.push(cube)
 
 }
 
-function drawMaze(){
-
-mazeDiv.style.gridTemplateColumns=`repeat(${size},20px)`
-
-for(let y=0;y<size;y++){
-for(let x=0;x<size;x++){
-
-let cell=document.createElement("div")
-cell.classList.add("cell")
-
-if(maze[y][x]==1) cell.classList.add("wall")
-else cell.classList.add("path")
-
-if(maze[y][x]==2) cell.classList.add("goal")
-
-mazeDiv.appendChild(cell)
-
-}
 }
 
 }
 
-function updateCamera(){
+let goalGeo=new THREE.BoxGeometry(1,1,1)
 
-playerDiv.style.left="290px"
-playerDiv.style.top="290px"
+let goalMat=new THREE.MeshStandardMaterial({color:0xff0000})
 
-mazeDiv.style.left=300-player.x*20+"px"
-mazeDiv.style.top=300-player.y*20+"px"
+goal=new THREE.Mesh(goalGeo,goalMat)
+
+goal.position.set(mazeSize-2,0.5,mazeSize-2)
+
+scene.add(goal)
 
 }
 
-function move(dx,dy){
+generateMaze()
 
-let nx=player.x+dx
-let ny=player.y+dy
+camera.position.set(1,1.7,1)
 
-if(maze[ny][nx]==1) return
+let velocity={x:0,z:0}
 
-createPaw()
+let keys={}
 
-player.x=nx
-player.y=ny
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
 
-updateCamera()
+document.body.onclick=()=>{
 
-if(maze[ny][nx]==2){
+document.body.requestPointerLock()
+
+}
+
+document.addEventListener("mousemove",e=>{
+
+if(document.pointerLockElement===document.body){
+
+camera.rotation.y -= e.movementX * 0.002
+camera.rotation.x -= e.movementY * 0.002
+
+camera.rotation.x=Math.max(-1.5,Math.min(1.5,camera.rotation.x))
+
+}
+
+})
+
+function move(){
+
+let speed=0.08
+
+let dir=new THREE.Vector3()
+
+camera.getWorldDirection(dir)
+
+let right=new THREE.Vector3()
+
+right.crossVectors(camera.up,dir).normalize()
+
+if(keys["w"]){
+
+camera.position.x += dir.x*speed
+camera.position.z += dir.z*speed
+
+}
+
+if(keys["s"]){
+
+camera.position.x -= dir.x*speed
+camera.position.z -= dir.z*speed
+
+}
+
+if(keys["a"]){
+
+camera.position.x += right.x*speed
+camera.position.z += right.z*speed
+
+}
+
+if(keys["d"]){
+
+camera.position.x -= right.x*speed
+camera.position.z -= right.z*speed
+
+}
+
+}
+
+function checkGoal(){
+
+let dx=camera.position.x-goal.position.x
+let dz=camera.position.z-goal.position.z
+
+if(Math.sqrt(dx*dx+dz*dz)<1){
 
 alert("🎉 Stage Clear!")
 
 stage++
 
-document.getElementById("stage").innerText="Stage "+stage
+document.getElementById("stage").innerText=stage
+
+mazeSize+=3
 
 generateMaze()
 
-}
+camera.position.set(1,1.7,1)
 
 }
 
-function createPaw(){
+}
 
-let paw=document.createElement("div")
+function animate(){
 
-paw.className="paw"
-paw.innerText="🐾"
+requestAnimationFrame(animate)
 
-paw.style.left="295px"
-paw.style.top="295px"
+move()
 
-document.getElementById("game").appendChild(paw)
+checkGoal()
 
-setTimeout(()=>paw.remove(),1000)
+renderer.render(scene,camera)
 
 }
 
-document.addEventListener("keydown",e=>{
-
-if(e.key=="ArrowUp") move(0,-1)
-if(e.key=="ArrowDown") move(0,1)
-if(e.key=="ArrowLeft") move(-1,0)
-if(e.key=="ArrowRight") move(1,0)
-
-})
-
-generateMaze()
+animate()
 
 </script>
 
