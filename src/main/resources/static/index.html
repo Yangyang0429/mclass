@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Dachshund Fetch Game</title>
+<title>Dachshund Chase</title>
 
 <style>
 
@@ -18,33 +18,46 @@ h1{color:#333;}
 p{color:#666;}
 
 #dog{
-margin-top:30px;
-width:200px;
+position:absolute;
+width:180px;
 border-radius:12px;
 box-shadow:0 8px 20px rgba(0,0,0,0.15);
-position:absolute;
-left:50%;
-transform:translateX(-50%);
-transition:1s linear;
 }
 
-.ball{
+/* 공 */
+#ball{
 position:absolute;
-font-size:28px;
-pointer-events:none;
+font-size:32px;
 }
 
+/* 발자국 */
 .paw{
 position:absolute;
 font-size:22px;
 pointer-events:none;
-animation:fadepaw 2s forwards;
+animation:pawfade 3s forwards;
 }
 
-@keyframes fadepaw{
-0%{opacity:0; transform:scale(0.5);}
-30%{opacity:1;}
-100%{opacity:0; transform:scale(0.8);}
+@keyframes pawfade{
+
+0%{
+opacity:0;
+transform:scale(0.5);
+}
+
+20%{
+opacity:1;
+}
+
+80%{
+opacity:1;
+}
+
+100%{
+opacity:0;
+transform:scale(0.7);
+}
+
 }
 
 </style>
@@ -54,21 +67,34 @@ animation:fadepaw 2s forwards;
 
 <h1>Tomcat Web Server</h1>
 <h1>🐶 Welcome</h1>
-<p>닥스훈트 입니다! (클릭해서 공 던지기)</p>
+<p>닥스훈트가 공을 쫒아갑니다!</p>
 
-<img id="dog" src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg">
+<img id="dog"
+src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg">
+
+<div id="ball">🎾</div>
 
 <p>Powered by 🦴</p>
 
 <script>
 
 const dog=document.getElementById("dog")
+const ball=document.getElementById("ball")
 
-let centerX=window.innerWidth/2
-let centerY=300
+let dogX=window.innerWidth/2
+let dogY=350
 
-dog.style.left=centerX+"px"
-dog.style.top=centerY+"px"
+let ballX=200
+let ballY=200
+
+let vx=2
+let vy=2
+
+dog.style.left=dogX+"px"
+dog.style.top=dogY+"px"
+
+ball.style.left=ballX+"px"
+ball.style.top=ballY+"px"
 
 
 function createPaw(x,y){
@@ -82,74 +108,56 @@ paw.style.top=y+"px"
 
 document.body.appendChild(paw)
 
-setTimeout(()=>paw.remove(),2000)
+setTimeout(()=>{
+paw.remove()
+},3000)
 
 }
 
 
-// 공 던지기
-document.addEventListener("click",function(e){
+// 공 이동
+function moveBall(){
 
-let ball=document.createElement("div")
+ballX+=vx
+ballY+=vy
 
-ball.className="ball"
-ball.innerHTML="🎾"
+if(ballX<0 || ballX>window.innerWidth-40) vx*=-1
+if(ballY<100 || ballY>window.innerHeight-40) vy*=-1
 
-ball.style.left=e.clientX+"px"
-ball.style.top=e.clientY+"px"
+ball.style.left=ballX+"px"
+ball.style.top=ballY+"px"
 
-document.body.appendChild(ball)
-
-moveDog(e.clientX,e.clientY,ball)
-
-})
+}
 
 
-// 강아지 이동
-function moveDog(x,y,ball){
+// 강아지 추격
+function chaseBall(){
 
-let dogX=dog.offsetLeft
-let dogY=dog.offsetTop
+let dx=ballX-dogX
+let dy=ballY-dogY
 
-let steps=30
-let i=0
-
-let move=setInterval(()=>{
-
-dogX+=(x-dogX)/10
-dogY+=(y-dogY)/10
+dogX+=dx*0.02
+dogY+=dy*0.02
 
 dog.style.left=dogX+"px"
 dog.style.top=dogY+"px"
 
-createPaw(dogX+80,dogY+120)
-
-i++
-
-if(i>steps){
-
-clearInterval(move)
-
-ball.remove()
-
-setTimeout(()=>{
-returnDog()
-},500)
-
-}
-
-},30)
+createPaw(dogX+60,dogY+120)
 
 }
 
 
-// 중앙으로 복귀
-function returnDog(){
+// 게임 루프
+function loop(){
 
-dog.style.left=centerX+"px"
-dog.style.top=centerY+"px"
+moveBall()
+chaseBall()
+
+requestAnimationFrame(loop)
 
 }
+
+loop()
 
 </script>
 
