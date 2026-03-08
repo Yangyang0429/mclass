@@ -1,143 +1,36 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>CSS Dachshund Animation</title>
-
-<style>
-
-body{
-    background:#f4f4f4;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-/* 전체 강아지 */
-.dog{
-    position:relative;
-    width:320px;
-    height:120px;
-}
-
-/* 몸통 */
-.body{
-    position:absolute;
-    width:220px;
-    height:70px;
-    background:#8b5a2b;
-    border-radius:40px;
-    left:60px;
-    top:25px;
-}
-
-/* 머리 */
-.head{
-    position:absolute;
-    width:80px;
-    height:80px;
-    background:#8b5a2b;
-    border-radius:50%;
-    left:0;
-}
-
-/* 귀 */
-.ear{
-    position:absolute;
-    width:30px;
-    height:60px;
-    background:#5a381d;
-    border-radius:30px;
-    left:10px;
-    top:30px;
-}
-
-/* 눈 */
-.eye{
-    position:absolute;
-    width:8px;
-    height:8px;
-    background:black;
-    border-radius:50%;
-    top:30px;
-    left:50px;
-}
-
-/* 코 */
-.nose{
-    position:absolute;
-    width:10px;
-    height:10px;
-    background:black;
-    border-radius:50%;
-    left:70px;
-    top:45px;
-}
-
-/* 다리 */
-.leg{
-    position:absolute;
-    width:15px;
-    height:45px;
-    background:#5a381d;
-    bottom:-35px;
-    border-radius:10px;
-    animation:run 0.5s infinite alternate;
-}
-
-.leg1{ left:90px;}
-.leg2{ left:140px; animation-delay:0.25s;}
-.leg3{ left:190px;}
-.leg4{ left:230px; animation-delay:0.25s;}
-
-/* 꼬리 */
-.tail{
-    position:absolute;
-    width:60px;
-    height:10px;
-    background:#5a381d;
-    right:-40px;
-    top:30px;
-    transform-origin:left center;
-    animation:wag 0.4s infinite alternate;
-}
-
-/* 애니메이션 */
-@keyframes run{
-    from{ transform:rotate(15deg);}
-    to{ transform:rotate(-15deg);}
-}
-
-@keyframes wag{
-    from{ transform:rotate(20deg);}
-    to{ transform:rotate(-20deg);}
-}
-
-</style>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding-top: 80px;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+        img {
+            margin-top: 30px;
+            width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+    </style>
 </head>
-
 <body>
+    <h1> Tomcat Web Server </h1>
     <h1>🐶 Welcome </h1>
+    <p>닥스훈트 입니다!</p>
+
     <img src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg" alt="닥스훈트">
-<div class="dog">
 
-<div class="head">
-<div class="ear"></div>
-<div class="eye"></div>
-<div class="nose"></div>
-</div>
-
-<div class="body"></div>
-
-<div class="leg leg1"></div>
-<div class="leg leg2"></div>
-<div class="leg leg3"></div>
-<div class="leg leg4"></div>
-
-<div class="tail"></div>
-
-</div>
-
+    <p>Powered by 🦴</p>
 </body>
 </html>
