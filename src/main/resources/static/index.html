@@ -14,13 +14,25 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: 80px; /* 글자 공간 확보 */
 }
 
-h1 { color: #333; text-align: center; }
-p { color: #666; text-align: center; }
+h1 { 
+    color: #333; 
+    text-align: center; 
+    z-index: 10;
+    position: relative;
+}
 
-/* 닥스훈트 이미지 중앙 고정 */
+p { 
+    color: #666; 
+    text-align: center; 
+    z-index: 10;
+    position: relative;
+}
+
+/* 닥스훈트 이미지 중앙 고정, 글자 위에 가리지 않도록 z-index 낮춤 */
 #dog {
     width: 300px;
     border-radius: 12px;
@@ -29,6 +41,7 @@ p { color: #666; text-align: center; }
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 1; /* 글자보다 아래 */
 }
 
 /* 발자국 스타일 */
@@ -39,6 +52,7 @@ p { color: #666; text-align: center; }
     opacity: 0.8;
     transform: translate(-50%, -50%);
     animation: fadePaw 3s forwards;
+    z-index: 5; /* 이미지 위에 표시 */
 }
 
 @keyframes fadePaw {
