@@ -1,8 +1,10 @@
+
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Hard Mode Maze Game</title>
+<title>Hard Mode Maze Game - Multi Stage</title>
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -15,19 +17,18 @@ body {
 }
 
 h1 { color:#333; }
-
 #maze {
     display: grid;
-    grid-template-columns: repeat(10, 50px);
-    grid-template-rows: repeat(10, 50px);
+    grid-template-columns: repeat(12, 40px);
+    grid-template-rows: repeat(12, 40px);
     gap: 2px;
     margin-top: 20px;
     position: relative;
 }
 
 .cell {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border: 1px solid #ccc;
     background: #fff;
     box-sizing: border-box;
@@ -39,7 +40,7 @@ h1 { color:#333; }
 
 .paw {
     position: absolute;
-    font-size: 24px;
+    font-size: 20px;
     pointer-events: none;
     transform: translate(-50%, -50%);
     animation: fadePaw 1s forwards;
@@ -53,86 +54,125 @@ h1 { color:#333; }
 </head>
 <body>
 
-<h1>Hard Mode Maze Game</h1>
+<h1>Hard Mode Maze - Multi Stage</h1>
 <p>💡 화살표 키로 닥스훈트를 목표까지 이동시키세요!</p>
 <div id="maze"></div>
+<p id="stage">Stage: 1</p>
 <p id="message"></p>
 
 <script>
 // ==================== 변수 ====================
-const rows = 10;
-const cols = 10;
-const maze = document.getElementById("maze");
-
-// 0=빈칸, 1=벽, 2=시작, 3=목표
-const map = [
-[2,0,1,0,0,0,1,0,0,0],
-[1,0,1,0,1,0,1,0,1,0],
-[0,0,0,0,1,0,0,0,1,0],
-[0,1,1,0,1,1,1,0,1,0],
-[0,0,0,0,0,0,1,0,0,0],
-[0,1,0,1,1,0,1,1,1,0],
-[0,1,0,0,0,0,0,0,1,0],
-[0,1,1,1,1,1,1,0,1,0],
-[0,0,0,0,0,0,0,0,0,3],
-[1,1,0,1,1,1,0,1,1,1]
+const stages = [
+    // Stage 1 (쉬움)
+    [
+        [2,0,1,0,0,0,1,0,0,0,0,0],
+        [1,0,1,0,1,0,1,0,1,0,1,0],
+        [0,0,0,0,1,0,0,0,1,0,0,0],
+        [0,1,1,0,1,1,1,0,1,0,1,0],
+        [0,0,0,0,0,0,1,0,0,0,0,0],
+        [0,1,0,1,1,0,1,1,1,0,1,0],
+        [0,1,0,0,0,0,0,0,1,0,0,0],
+        [0,1,1,1,1,1,1,0,1,1,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0,3],
+        [1,1,0,1,1,1,0,1,1,1,0,1],
+        [0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,1,1,1,1,1,0,0,1,1,1,0]
+    ],
+    // Stage 2 (더 어려움)
+    [
+        [2,1,0,1,0,1,0,1,0,1,0,0],
+        [0,1,0,1,0,1,0,1,0,1,0,0],
+        [0,0,0,1,0,0,0,1,0,0,1,0],
+        [1,1,0,1,1,1,0,1,1,0,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,1,0,1,1,1,1,1,1,1,1,0],
+        [0,1,0,0,0,0,0,0,0,0,1,0],
+        [0,1,1,1,1,1,1,1,1,0,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0,3],
+        [1,1,0,1,1,1,0,1,1,1,0,1],
+        [0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,1,1,1,1,1,0,0,1,1,1,0]
+    ]
 ];
 
+let currentStage = 0;
 let playerPos = {row:0, col:0};
 let cells = [];
 
-// ==================== 격자 생성 ====================
-for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-        const cell = document.createElement("div");
-        cell.className="cell";
-        maze.appendChild(cell);
-        cells.push(cell);
+// ==================== 게임 초기화 ====================
+function loadStage(stageIndex){
+    const mazeDiv = document.getElementById("maze");
+    mazeDiv.innerHTML="";
+    cells=[];
 
-        if(map[r][c]===1) cell.classList.add("wall");
-        if(map[r][c]===3) cell.classList.add("goal");
-        if(map[r][c]===2){
-            cell.classList.add("player");
-            cell.innerHTML="🐶";
+    const map = stages[stageIndex];
+    const rows = map.length;
+    const cols = map[0].length;
+
+    for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+            const cell = document.createElement("div");
+            cell.className="cell";
+            mazeDiv.appendChild(cell);
+            cells.push(cell);
+
+            if(map[r][c]===1) cell.classList.add("wall");
+            if(map[r][c]===3) cell.classList.add("goal");
+            if(map[r][c]===2){
+                cell.classList.add("player");
+                cell.innerHTML="🐶";
+                playerPos={row:r,col:c};
+            }
         }
     }
+    document.getElementById("stage").innerText="Stage: "+(stageIndex+1);
+    document.getElementById("message").innerText="";
 }
 
-// ==================== 이동 함수 ====================
+loadStage(currentStage);
+
+// ==================== 이동 ====================
 function movePlayer(dr,dc){
+    const map = stages[currentStage];
+    const rows = map.length;
+    const cols = map[0].length;
+
     const newRow = playerPos.row + dr;
     const newCol = playerPos.col + dc;
     if(newRow<0 || newRow>=rows || newCol<0 || newCol>=cols) return;
     if(map[newRow][newCol]===1) return;
 
-    // 발자국 생성
     const oldCell = cells[playerPos.row*cols + playerPos.col];
     const paw = document.createElement("div");
     paw.className="paw";
     paw.innerHTML="🐾";
-    paw.style.left = oldCell.offsetLeft + 25 + "px";
-    paw.style.top = oldCell.offsetTop + 25 + "px";
+    paw.style.left = oldCell.offsetLeft + 20 + "px";
+    paw.style.top = oldCell.offsetTop + 20 + "px";
     document.getElementById("maze").appendChild(paw);
     setTimeout(()=>paw.remove(),2000);
 
-    // 이전 위치 지우기
     oldCell.classList.remove("player");
     oldCell.innerHTML="";
 
-    // 새 위치 이동
-    playerPos.row = newRow;
-    playerPos.col = newCol;
-    const newCell = cells[playerPos.row*cols + playerPos.col];
+    playerPos.row=newRow;
+    playerPos.col=newCol;
+
+    const newCell = cells[newRow*cols + newCol];
     newCell.classList.add("player");
     newCell.innerHTML="🐶";
 
-    // 목표 도달 체크
     if(map[newRow][newCol]===3){
-        document.getElementById("message").innerText="🎉 목표 달성! 축하합니다!";
+        document.getElementById("message").innerText="🎉 스테이지 클리어!";
+        currentStage++;
+        if(currentStage>=stages.length){
+            setTimeout(()=>alert("🏆 모든 스테이지 클리어! 축하합니다!"),300);
+        } else {
+            setTimeout(()=>loadStage(currentStage),500);
+        }
     }
 }
 
-// ==================== 키보드 이벤트 ====================
+// ==================== 키보드 ====================
 document.addEventListener("keydown", e=>{
     if(e.key==="ArrowUp") movePlayer(-1,0);
     if(e.key==="ArrowDown") movePlayer(1,0);
@@ -143,4 +183,3 @@ document.addEventListener("keydown", e=>{
 
 </body>
 </html>
-
