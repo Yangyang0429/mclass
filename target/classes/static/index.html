@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Dachshund Chase</title>
+
+<style>
+
+body{
+font-family:Arial,sans-serif;
+background:#f5f7fa;
+text-align:center;
+padding-top:80px;
+overflow:hidden;
+}
+
+h1{color:#333;}
+p{color:#666;}
+
+#dog{
+position:absolute;
+width:180px;
+border-radius:12px;
+box-shadow:0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* 공 */
+#ball{
+position:absolute;
+font-size:32px;
+}
+
+/* 발자국 */
+.paw{
+position:absolute;
+font-size:22px;
+pointer-events:none;
+animation:pawfade 3s forwards;
+}
+
+@keyframes pawfade{
+
+0%{
+opacity:0;
+transform:scale(0.5);
+}
+
+20%{
+opacity:1;
+}
+
+80%{
+opacity:1;
+}
+
+100%{
+opacity:0;
+transform:scale(0.7);
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Tomcat Web Server</h1>
+<h1>🐶 Welcome</h1>
+<p>닥스훈트가 공을 쫒아갑니다!</p>
+
+<img id="dog"
+src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg">
+
+<div id="ball">🎾</div>
+
+<p>Powered by 🦴</p>
+
+<script>
+
+const dog=document.getElementById("dog")
+const ball=document.getElementById("ball")
+
+let dogX=window.innerWidth/2
+let dogY=350
+
+let ballX=200
+let ballY=200
+
+let vx=2
+let vy=2
+
+dog.style.left=dogX+"px"
+dog.style.top=dogY+"px"
+
+ball.style.left=ballX+"px"
+ball.style.top=ballY+"px"
+
+
+function createPaw(x,y){
+
+let paw=document.createElement("div")
+paw.className="paw"
+paw.innerHTML="🐾"
+
+paw.style.left=x+"px"
+paw.style.top=y+"px"
+
+document.body.appendChild(paw)
+
+setTimeout(()=>{
+paw.remove()
+},3000)
+
+}
+
+
+// 공 이동
+function moveBall(){
+
+ballX+=vx
+ballY+=vy
+
+if(ballX<0 || ballX>window.innerWidth-40) vx*=-1
+if(ballY<100 || ballY>window.innerHeight-40) vy*=-1
+
+ball.style.left=ballX+"px"
+ball.style.top=ballY+"px"
+
+}
+
+
+// 강아지 추격
+function chaseBall(){
+
+let dx=ballX-dogX
+let dy=ballY-dogY
+
+dogX+=dx*0.02
+dogY+=dy*0.02
+
+dog.style.left=dogX+"px"
+dog.style.top=dogY+"px"
+
+createPaw(dogX+60,dogY+120)
+
+}
+
+
+// 게임 루프
+function loop(){
+
+moveBall()
+chaseBall()
+
+requestAnimationFrame(loop)
+
+}
+
+loop()
+
+</script>
+
+</body>
+</html>
