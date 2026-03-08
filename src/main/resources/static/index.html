@@ -2,227 +2,154 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Tomcat Wall Breaker Ultimate</title>
+<title>Web Sudoku Game</title>
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: #e0f7fa;
-    margin: 0;
-    overflow: hidden;
-    position: relative;
-}
-
-h1 { text-align:center; color:#333; margin:10px 0; }
-
-#scoreboard, #timer {
-    position: fixed;
-    top: 10px;
-    font-size: 20px;
-    background: rgba(255,255,255,0.8);
-    padding: 6px 12px;
-    border-radius: 12px;
-    border: 2px solid #333;
-    z-index: 10;
-}
-#scoreboard { left: 10px; }
-#timer { right: 10px; }
-
-/* 닥스훈트 */
-#dog {
-    width: 150px;
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
-}
-
-/* 발자국 & 폭발 */
-.paw {
-    position: absolute;
-    font-size: 24px;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    animation: fadePaw 1s forwards;
-    z-index: 5;
-}
-@keyframes fadePaw {
-    0% { opacity: 1; }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-}
-
-/* 공 */
-.ball {
-    position: absolute;
-    font-size: 40px;
-    z-index: 3;
-}
-
-/* 벽 블록 */
-.block {
-    position: absolute;
-    width: 60px;
-    height: 30px;
-    border: 2px solid #333;
+    background: #f0f5f9;
     display: flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:bold;
-    color:#fff;
-    z-index:1;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 30px;
+}
+
+h1 { color: #333; margin-bottom: 10px; }
+
+#sudoku {
+    display: grid;
+    grid-template-columns: repeat(9, 50px);
+    grid-template-rows: repeat(9, 50px);
+    gap: 2px;
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    border: 1px solid #999;
+    background: #fff;
+}
+
+.cell.prefilled {
+    background: #d3e0ea;
+    font-weight: bold;
+}
+
+.cell.invalid {
+    background: #ff6b6b;
 }
 </style>
 </head>
 <body>
 
-<h1>Tomcat Wall Breaker Ultimate</h1>
-<div id="scoreboard">점수: 0</div>
-<div id="timer">시간: 60</div>
-
-<img id="dog" src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg">
+<h1>Sudoku Game</h1>
+<div id="sudoku"></div>
+<p id="message"></p>
 
 <script>
-// ==================== 변수 ====================
-const dog = document.getElementById("dog");
-let dogX = window.innerWidth/2 - 75;
-const dogWidth = 150;
-let balls = [];
-let blocks = [];
-let score = 0;
-let timeLeft = 60;
+// ==================== 퍼즐 예제 ====================
+// 0 = 빈 칸
+const puzzle = [
+[5,3,0,0,7,0,0,0,0],
+[6,0,0,1,9,5,0,0,0],
+[0,9,8,0,0,0,0,6,0],
+[8,0,0,0,6,0,0,0,3],
+[4,0,0,8,0,3,0,0,1],
+[7,0,0,0,2,0,0,0,6],
+[0,6,0,0,0,0,2,8,0],
+[0,0,0,4,1,9,0,0,5],
+[0,0,0,0,8,0,0,7,9]
+];
 
-// ==================== 마우스 발자국 ====================
-document.addEventListener("mousemove", e=>{
-    const paw = document.createElement("div");
-    paw.className = "paw";
-    paw.innerHTML = "🐾";
-    paw.style.left = e.pageX + "px";
-    paw.style.top = e.pageY + "px";
-    document.body.appendChild(paw);
-    setTimeout(()=>paw.remove(),1000);
-});
+// ==================== UI 생성 ====================
+const sudoku = document.getElementById("sudoku");
+for(let i=0;i<9;i++){
+    for(let j=0;j<9;j++){
+        const cell = document.createElement("input");
+        cell.type="text";
+        cell.maxLength=1;
+        cell.className="cell";
+        cell.dataset.row=i;
+        cell.dataset.col=j;
 
-// ==================== 벽 생성 ====================
-const rows = 4;
-const cols = 8;
-const startX = 50;
-const startY = 50;
-const spacingX = 70;
-const spacingY = 40;
+        if(puzzle[i][j]!==0){
+            cell.value=puzzle[i][j];
+            cell.disabled = true;
+            cell.classList.add("prefilled");
+        }
 
-for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-        const block = document.createElement("div");
-        block.className = "block";
-        block.style.left = startX + c*spacingX + "px";
-        block.style.top = startY + r*spacingY + "px";
-        block.dataset.hp = Math.floor(Math.random()*3)+1;
-        updateBlockColor(block);
-        document.body.appendChild(block);
-        blocks.push(block);
+        sudoku.appendChild(cell);
     }
 }
 
-function updateBlockColor(block){
-    const hp = parseInt(block.dataset.hp);
-    if(hp===3) block.style.background="#ff6347";
-    else if(hp===2) block.style.background="#ff8c42";
-    else block.style.background="#ffd700";
-}
+// ==================== 입력 체크 ====================
+function checkSudoku(){
+    let cells = document.querySelectorAll(".cell");
+    let valid = true;
 
-// ==================== 공 발사 ====================
-function createBall(){
-    const ball = document.createElement("div");
-    ball.className="ball";
-    ball.innerHTML="🎾";
-    ball.style.left = (dogX + dogWidth/2 - 20) + "px";
-    ball.style.top = (dog.offsetTop - 40) + "px";
-    document.body.appendChild(ball);
-    balls.push(ball);
-    moveBall(ball,6);
-}
+    for(let i=0;i<9;i++){
+        for(let j=0;j<9;j++){
+            let cell = document.querySelector(`.cell[data-row='${i}'][data-col='${j}']`);
+            cell.classList.remove("invalid");
+            let val = parseInt(cell.value);
 
-function moveBall(ball,speed){
-    let top = parseFloat(ball.style.top);
-    const interval = setInterval(()=>{
-        top -= speed;
-        ball.style.top = top + "px";
-        const ballRect = ball.getBoundingClientRect();
-
-        // 벽 충돌 체크
-        for(let i=0;i<blocks.length;i++){
-            const block = blocks[i];
-            if(!block) continue;
-            const bRect = block.getBoundingClientRect();
-            if(ballRect.bottom > bRect.top &&
-               ballRect.top < bRect.bottom &&
-               ballRect.left + ballRect.width > bRect.left &&
-               ballRect.left < bRect.right){
-
-                   block.dataset.hp--;
-                   updateBlockColor(block);
-
-                   if(block.dataset.hp<=0){
-                       block.remove();
-                       blocks[i]=null;
-                   }
-
-                   ball.remove();
-                   balls = balls.filter(b=>b!==ball);
-
-                   // 폭발 효과
-                   for(let j=0;j<5;j++){
-                       setTimeout(()=>{
-                           const paw = document.createElement("div");
-                           paw.className="paw";
-                           paw.innerHTML="💥";
-                           paw.style.left = (bRect.left + bRect.width/2 + Math.random()*30-15) + "px";
-                           paw.style.top = (bRect.top + bRect.height/2 + Math.random()*30-15) + "px";
-                           paw.style.color = ["#FF6347","#FFD700","#ADFF2F","#00BFFF","#FF69B4"][Math.floor(Math.random()*5)];
-                           document.body.appendChild(paw);
-                           setTimeout(()=>paw.remove(),500);
-                       }, j*50);
-                   }
-
-                   // 점수 증가
-                   score += 10;
-                   document.getElementById("scoreboard").innerText = "점수: "+score;
-
-                   clearInterval(interval);
-                   return;
+            if(isNaN(val) || val<1 || val>9){
+                valid=false;
+                continue;
             }
-        }
 
-        // 화면 위로 나가면 제거
-        if(top < -50){
-            ball.remove();
-            balls = balls.filter(b=>b!==ball);
-            clearInterval(interval);
+            // 행 체크
+            for(let c=0;c<9;c++){
+                if(c!==j){
+                    let other = document.querySelector(`.cell[data-row='${i}'][data-col='${c}']`);
+                    if(parseInt(other.value)===val) cell.classList.add("invalid");
+                }
+            }
+
+            // 열 체크
+            for(let r=0;r<9;r++){
+                if(r!==i){
+                    let other = document.querySelector(`.cell[data-row='${r}'][data-col='${j}']`);
+                    if(parseInt(other.value)===val) cell.classList.add("invalid");
+                }
+            }
+
+            // 3x3 박스 체크
+            let startRow = Math.floor(i/3)*3;
+            let startCol = Math.floor(j/3)*3;
+            for(let r=startRow;r<startRow+3;r++){
+                for(let c=startCol;c<startCol+3;c++){
+                    if(r===i && c===j) continue;
+                    let other = document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+                    if(parseInt(other.value)===val) cell.classList.add("invalid");
+                }
+            }
+
+            if(cell.classList.contains("invalid")) valid=false;
         }
-    },20);
+    }
+
+    return valid;
 }
 
-// ==================== 키보드 이동 ====================
-document.addEventListener("keydown",(e)=>{
-    if(e.key==="ArrowLeft") dogX-=30;
-    if(e.key==="ArrowRight") dogX+=30;
-    dogX = Math.max(0,Math.min(window.innerWidth-dogWidth,dogX));
-    dog.style.left = dogX+"px";
+// ==================== 입력 이벤트 ====================
+let cells = document.querySelectorAll(".cell");
+cells.forEach(cell=>{
+    cell.addEventListener("input", ()=>{
+        if(cell.value.length>0){
+            cell.value = cell.value.replace(/[^1-9]/g,'');
+        }
+        if(checkSudoku()){
+            document.getElementById("message").innerText="🎉 축하합니다! 퍼즐 완성!";
+        } else {
+            document.getElementById("message").innerText="";
+        }
+    });
 });
-
-// ==================== 마우스 클릭 ====================
-document.addEventListener("click", createBall);
-
-// ==================== 타이머 ====================
-const timer = setInterval(()=>{
-    timeLeft--;
-    document.getElementById("timer").innerText = "시간: "+timeLeft;
-    if(timeLeft<=0){
-        clearInterval(timer);
-        alert("⏰ 시간 종료! 최종 점수: "+score);
-        window.location.reload();
-    }
-},1000);
 </script>
+
 </body>
 </html>
