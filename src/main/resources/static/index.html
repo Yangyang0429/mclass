@@ -2,26 +2,24 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>3D Maze Game</title>
+<title>Dachshund 3D Game</title>
 
 <style>
-
 body{
 margin:0;
 overflow:hidden;
 font-family:Arial;
-background:black;
-color:white;
 }
 
 #ui{
 position:absolute;
 top:10px;
 left:10px;
-z-index:10;
-font-size:18px;
+font-size:20px;
+background:white;
+padding:8px;
+border-radius:8px;
 }
-
 </style>
 
 </head>
@@ -29,198 +27,146 @@ font-size:18px;
 <body>
 
 <div id="ui">
-Stage : <span id="stage">1</span><br>
-WASD 이동 / 마우스 시점
+Score : <span id="score">0</span><br>
+WASD 이동
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 
 <script>
 
-let scene = new THREE.Scene()
+let scene=new THREE.Scene()
 
-let camera = new THREE.PerspectiveCamera(
+let camera=new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
 1000
 )
 
-let renderer = new THREE.WebGLRenderer()
+let renderer=new THREE.WebGLRenderer()
 
 renderer.setSize(window.innerWidth,window.innerHeight)
 
 document.body.appendChild(renderer.domElement)
 
-let light = new THREE.PointLight(0xffffff,1)
-light.position.set(10,20,10)
 
+// 빛
+let light=new THREE.DirectionalLight(0xffffff,1)
+light.position.set(10,20,10)
 scene.add(light)
 
-let ambient = new THREE.AmbientLight(0x555555)
-scene.add(ambient)
+scene.add(new THREE.AmbientLight(0x888888))
 
-let stage=1
 
-let mazeSize=15
-let maze=[]
+// 바닥
+let floorGeo=new THREE.PlaneGeometry(100,100)
+let floorMat=new THREE.MeshStandardMaterial({color:0x77cc77})
 
-let walls=[]
+let floor=new THREE.Mesh(floorGeo,floorMat)
 
-let goal
+floor.rotation.x=-Math.PI/2
 
-function generateMaze(){
+scene.add(floor)
 
-maze=[]
-walls.forEach(w=>scene.remove(w))
-walls=[]
 
-for(let y=0;y<mazeSize;y++){
+// 닥스훈트 (간단한 박스 캐릭터)
+let dogGeo=new THREE.BoxGeometry(1.5,0.5,0.5)
+let dogMat=new THREE.MeshStandardMaterial({color:0x8b4513})
 
-maze[y]=[]
+let dog=new THREE.Mesh(dogGeo,dogMat)
 
-for(let x=0;x<mazeSize;x++){
+dog.position.y=0.25
 
-let wall=Math.random()<0.3
+scene.add(dog)
 
-if(x==1 && y==1) wall=false
-if(x==mazeSize-2 && y==mazeSize-2) wall=false
 
-maze[y][x]=wall?1:0
+// 공
+let ballGeo=new THREE.SphereGeometry(0.3,16,16)
+let ballMat=new THREE.MeshStandardMaterial({color:0xffaa00})
 
-if(wall){
+let ball=new THREE.Mesh(ballGeo,ballMat)
 
-let geo=new THREE.BoxGeometry(1,2,1)
-let mat=new THREE.MeshStandardMaterial({color:0x444444})
+scene.add(ball)
 
-let cube=new THREE.Mesh(geo,mat)
+function randomBall(){
 
-cube.position.set(x,1,y)
-
-scene.add(cube)
-
-walls.push(cube)
+ball.position.x=Math.random()*20-10
+ball.position.z=Math.random()*20-10
+ball.position.y=0.3
 
 }
 
-}
+randomBall()
 
-}
 
-let goalGeo=new THREE.BoxGeometry(1,1,1)
+// 점수
+let score=0
 
-let goalMat=new THREE.MeshStandardMaterial({color:0xff0000})
 
-goal=new THREE.Mesh(goalGeo,goalMat)
-
-goal.position.set(mazeSize-2,0.5,mazeSize-2)
-
-scene.add(goal)
-
-}
-
-generateMaze()
-
-camera.position.set(1,1.7,1)
-
-let velocity={x:0,z:0}
-
+// 키 입력
 let keys={}
 
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
 
-document.body.onclick=()=>{
 
-document.body.requestPointerLock()
-
-}
-
-document.addEventListener("mousemove",e=>{
-
-if(document.pointerLockElement===document.body){
-
-camera.rotation.y -= e.movementX * 0.002
-camera.rotation.x -= e.movementY * 0.002
-
-camera.rotation.x=Math.max(-1.5,Math.min(1.5,camera.rotation.x))
-
-}
-
-})
-
+// 이동
 function move(){
 
-let speed=0.08
+let speed=0.1
 
-let dir=new THREE.Vector3()
-
-camera.getWorldDirection(dir)
-
-let right=new THREE.Vector3()
-
-right.crossVectors(camera.up,dir).normalize()
-
-if(keys["w"]){
-
-camera.position.x += dir.x*speed
-camera.position.z += dir.z*speed
+if(keys["w"]) dog.position.z-=speed
+if(keys["s"]) dog.position.z+=speed
+if(keys["a"]) dog.position.x-=speed
+if(keys["d"]) dog.position.x+=speed
 
 }
 
-if(keys["s"]){
 
-camera.position.x -= dir.x*speed
-camera.position.z -= dir.z*speed
+// 충돌 체크
+function checkBall(){
 
-}
+let dx=dog.position.x-ball.position.x
+let dz=dog.position.z-ball.position.z
 
-if(keys["a"]){
+let dist=Math.sqrt(dx*dx+dz*dz)
 
-camera.position.x += right.x*speed
-camera.position.z += right.z*speed
+if(dist<0.8){
 
-}
+score++
 
-if(keys["d"]){
+document.getElementById("score").innerText=score
 
-camera.position.x -= right.x*speed
-camera.position.z -= right.z*speed
+randomBall()
 
 }
 
 }
 
-function checkGoal(){
 
-let dx=camera.position.x-goal.position.x
-let dz=camera.position.z-goal.position.z
+// 카메라 따라가기
+function followCamera(){
 
-if(Math.sqrt(dx*dx+dz*dz)<1){
+camera.position.x=dog.position.x
+camera.position.z=dog.position.z+5
+camera.position.y=4
 
-alert("🎉 Stage Clear!")
-
-stage++
-
-document.getElementById("stage").innerText=stage
-
-mazeSize+=3
-
-generateMaze()
-
-camera.position.set(1,1.7,1)
+camera.lookAt(dog.position)
 
 }
 
-}
 
+// 루프
 function animate(){
 
 requestAnimationFrame(animate)
 
 move()
 
-checkGoal()
+checkBall()
+
+followCamera()
 
 renderer.render(scene,camera)
 
