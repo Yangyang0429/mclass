@@ -2,178 +2,140 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Tomcat Wall Breaker</title>
+<title>Word Search Game</title>
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: #f0f5f9;
-    margin: 0;
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
+    background: #f5f7fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
 }
 
-/* 닥스훈트 중앙 고정 */
-#dog {
-    width: 150px;
-    position: fixed;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
+h1 { color: #333; }
+#wordList {
+    margin: 20px 0;
+    font-size: 18px;
 }
 
-/* 발자국 */
-.paw {
-    position: absolute;
-    font-size: 24px;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    animation: fadePaw 3s forwards;
-    z-index: 5;
+#grid {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    grid-template-rows: repeat(10, 40px);
+    gap: 2px;
 }
 
-@keyframes fadePaw {
-    0% { opacity: 1; }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+.cell {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    user-select: none;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.3s;
 }
 
-/* 공 */
-.ball {
-    position: absolute;
-    font-size: 40px;
-    z-index: 3;
-}
-
-/* 벽 블록 */
-.block {
-    position: absolute;
-    width: 60px;
-    height: 30px;
-    background: #ff6347;
-    border: 2px solid #333;
-    z-index: 1;
+.cell.selected {
+    background: #90ee90;
+    color: #000;
 }
 </style>
 </head>
 <body>
 
-<h1 style="text-align:center;">Tomcat Wall Breaker</h1>
-<p style="text-align:center;">🐶 닥스훈트와 함께 공으로 벽을 부수세요!</p>
-
-<img id="dog" src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg">
+<h1>Word Search Game</h1>
+<div id="wordList">Words: <span id="words"></span></div>
+<div id="grid"></div>
+<p id="message"></p>
 
 <script>
-// 마우스 따라 발자국
-document.addEventListener("mousemove", (e) => {
-    const paw = document.createElement("div");
-    paw.className = "paw";
-    paw.innerHTML = "🐾";
-    paw.style.left = e.pageX + "px";
-    paw.style.top = e.pageY + "px";
-    document.body.appendChild(paw);
-    setTimeout(() => paw.remove(), 3000);
-});
+const wordsToFind = ["DOG", "CAT", "BONE", "BALL", "PUPPY"];
+const gridSize = 10;
+let grid = [];
+let foundWords = [];
+const gridElement = document.getElementById("grid");
+const wordListElement = document.getElementById("words");
+const messageElement = document.getElementById("message");
 
-// 벽 생성
-let blocks = [];
-const rows = 3;
-const cols = 8;
-const startX = 50;
-const startY = 50;
-const spacingX = 70;
-const spacingY = 40;
+// 단어 목록 표시
+wordListElement.textContent = wordsToFind.join(", ");
 
-for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-        const block = document.createElement("div");
-        block.className = "block";
-        block.style.left = startX + c*spacingX + "px";
-        block.style.top = startY + r*spacingY + "px";
-        document.body.appendChild(block);
-        blocks.push(block);
+// 격자 생성
+for(let i=0;i<gridSize;i++){
+    grid[i] = [];
+    for(let j=0;j<gridSize;j++){
+        const letter = String.fromCharCode(65 + Math.floor(Math.random()*26));
+        grid[i][j] = letter;
+
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.dataset.row = i;
+        cell.dataset.col = j;
+        cell.textContent = letter;
+        gridElement.appendChild(cell);
     }
 }
 
-// 공 생성 및 이동
-function createBall() {
-    const ball = document.createElement("div");
-    ball.className = "ball";
-    ball.innerHTML = "🎾";
+// 단어 삽입 (가로만 간단하게)
+wordsToFind.forEach(word=>{
+    const row = Math.floor(Math.random()*gridSize);
+    const col = Math.floor(Math.random()*(gridSize - word.length));
+    for(let i=0;i<word.length;i++){
+        const cellIndex = row*gridSize + (col+i);
+        gridElement.children[cellIndex].textContent = word[i];
+        grid[row][col+i] = word[i];
+    }
+});
 
-    // 닥스훈트 중앙 위에서 시작
-    const dog = document.getElementById("dog");
-    const dogRect = dog.getBoundingClientRect();
-    ball.style.left = (dogRect.left + dogRect.width/2 - 20) + "px";
-    ball.style.top = (dogRect.top - 40) + "px";
+// 마우스 드래그 선택
+let selecting = false;
+let selectedCells = [];
 
-    document.body.appendChild(ball);
-    moveBall(ball);
-}
+gridElement.addEventListener("mousedown", (e)=>{
+    if(e.target.classList.contains("cell")){
+        selecting = true;
+        selectedCells = [e.target];
+        e.target.classList.add("selected");
+    }
+});
 
-function moveBall(ball){
-    let top = parseFloat(ball.style.top);
-    let speed = 6;
+gridElement.addEventListener("mouseover", (e)=>{
+    if(selecting && e.target.classList.contains("cell") && !selectedCells.includes(e.target)){
+        selectedCells.push(e.target);
+        e.target.classList.add("selected");
+    }
+});
 
-    const interval = setInterval(() => {
-        top -= speed;
-        ball.style.top = top + "px";
+document.addEventListener("mouseup", ()=>{
+    if(selecting){
+        selecting = false;
+        const selectedWord = selectedCells.map(c=>c.textContent).join("");
+        const reversedWord = selectedWord.split("").reverse().join("");
 
-        const ballRect = ball.getBoundingClientRect();
-
-        // 충돌 체크
-        for(let i=0;i<blocks.length;i++){
-            const block = blocks[i];
-            if(!block) continue;
-            const bRect = block.getBoundingClientRect();
-            if(ballRect.bottom > bRect.top &&
-               ballRect.top < bRect.bottom &&
-               ballRect.left + ballRect.width > bRect.left &&
-               ballRect.left < bRect.right) {
-                   // 벽 제거
-                   block.remove();
-                   blocks[i] = null;
-
-                   // 공 제거
-                   ball.remove();
-
-                   // 작은 발자국 효과
-                   for(let j=0;j<3;j++){
-                       setTimeout(()=>{
-                           const paw = document.createElement("div");
-                           paw.className="paw";
-                           paw.innerHTML="💥";
-                           paw.style.left = (bRect.left + bRect.width/2 + Math.random()*20 -10) + "px";
-                           paw.style.top = (bRect.top + bRect.height/2 + Math.random()*20 -10) + "px";
-                           document.body.appendChild(paw);
-                           setTimeout(()=>paw.remove(),1000);
-                       }, j*50);
-                   }
-
-                   clearInterval(interval);
-                   return;
-            }
+        if(wordsToFind.includes(selectedWord) && !foundWords.includes(selectedWord)){
+            foundWords.push(selectedWord);
+        } else if(wordsToFind.includes(reversedWord) && !foundWords.includes(reversedWord)){
+            foundWords.push(reversedWord);
+        } else {
+            // 선택 초기화
+            selectedCells.forEach(c=>c.classList.remove("selected"));
         }
 
-        // 화면 위로 나가면 제거
-        if(top < -50){
-            ball.remove();
-            clearInterval(interval);
+        selectedCells = [];
+
+        // 모두 찾으면 메시지
+        if(foundWords.length === wordsToFind.length){
+            messageElement.textContent = "🎉 축하합니다! 모든 단어를 찾았습니다!";
         }
-    }, 20);
-}
-
-// 클릭 시 공 발사
-document.addEventListener("click", createBall);
-
-// 키보드로 닥스훈트 좌우 이동
-let dogX = window.innerWidth/2 - 75;
-document.addEventListener("keydown", (e)=>{
-    if(e.key==="ArrowLeft") dogX -= 30;
-    if(e.key==="ArrowRight") dogX += 30;
-    dogX = Math.max(0, Math.min(window.innerWidth-150, dogX));
-    document.getElementById("dog").style.left = dogX + "px";
+    }
 });
 </script>
+
 </body>
 </html>
