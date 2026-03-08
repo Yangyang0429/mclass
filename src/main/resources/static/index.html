@@ -8,72 +8,71 @@
 body {
     font-family: Arial, sans-serif;
     background: #f5f7fa;
-    text-align: center;
     padding-top: 80px;
+    margin: 0;
+    overflow: hidden;
 }
 
-h1 { color: #333; }
-p { color: #666; }
+h1 { color: #333; text-align: center; }
+p { color: #666; text-align: center; }
 
-/* 이미지 + 발자국 묶음 */
-.dog-box {
-    position: relative;
-    display: inline-block;
-}
-
-img {
-    margin-top: 30px;
+#dog {
     width: 300px;
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-/* 발자국 기본 상태 (숨김) */
-.paws {
     position: absolute;
-    bottom: -40px;
-    left: 0;
-    width: 100%;
+    top: 300px;
+    left: 50px;
+    transition: transform 0.1s linear;
+}
+
+.paw {
+    position: absolute;
     font-size: 24px;
-    opacity: 0;
+    pointer-events: none;
+    opacity: 0.8;
+    transform: translate(-50%, -50%);
+    animation: fadePaw 3s forwards;
 }
 
-/* 마우스 올리면 발자국 등장 */
-.dog-box:hover .paws {
-    animation: pawWalk 1.5s infinite;
-    opacity: 1;
-}
-
-/* 발자국 이동 애니메이션 */
-@keyframes pawWalk {
-    0% {
-        transform: translateX(-20px);
-        opacity: 0;
-    }
-    50% {
-        transform: translateX(20px);
-        opacity: 1;
-    }
-    100% {
-        transform: translateX(60px);
-        opacity: 0;
-    }
+@keyframes fadePaw {
+    0% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
 }
 </style>
 </head>
-
 <body>
 
 <h1>Tomcat Web Server</h1>
 <h1>🐶 Welcome</h1>
 <p>닥스훈트 입니다!</p>
 
-<div class="dog-box">
-    <img src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg" alt="닥스훈트">
-    <div class="paws">🐾 🐾 🐾 🐾</div>
-</div>
+<img id="dog" src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg">
 
-<p>Powered by 🦴</p>
+<script>
+const dog = document.getElementById("dog");
+
+// 마우스를 따라가는 발자국
+document.addEventListener("mousemove", (e) => {
+    // 발자국 생성
+    const paw = document.createElement("div");
+    paw.className = "paw";
+    paw.innerHTML = "🐾";
+    paw.style.left = e.pageX + "px";
+    paw.style.top = e.pageY + "px";
+    document.body.appendChild(paw);
+
+    // 3초 후 발자국 제거
+    setTimeout(() => {
+        paw.remove();
+    }, 3000);
+
+    // 강아지가 마우스를 따라 이동
+    const dogX = e.pageX - 150; // 이미지 중앙 기준
+    const dogY = e.pageY - 100;
+    dog.style.transform = `translate(${dogX}px, ${dogY}px)`;
+});
+</script>
 
 </body>
 </html>
