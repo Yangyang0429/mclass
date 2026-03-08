@@ -1,61 +1,79 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Welcome</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f7fa;
-            text-align: center;
-            padding-top: 80px;
-        }
+<meta charset="UTF-8">
+<title>Welcome</title>
 
-        h1 {
-            color: #333;
-        }
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    text-align: center;
+    padding-top: 80px;
+}
 
-        p {
-            color: #666;
-        }
+h1 { color: #333; }
+p { color: #666; }
 
-        img {
-            margin-top: 30px;
-            width: 300px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+/* 이미지 + 발자국 묶음 */
+.dog-box {
+    position: relative;
+    display: inline-block;
+}
 
-            /* 애니메이션 */
-            animation: dogMove 4s infinite ease-in-out;
-        }
+img {
+    margin-top: 30px;
+    width: 300px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
 
-        /* 좌우로 움직이기 + 점프 */
-        @keyframes dogMove {
-            0% {
-                transform: translateX(0) translateY(0) rotate(0deg);
-            }
-            25% {
-                transform: translateX(-30px) translateY(-10px) rotate(-2deg);
-            }
-            50% {
-                transform: translateX(0) translateY(0) rotate(0deg);
-            }
-            75% {
-                transform: translateX(30px) translateY(-10px) rotate(2deg);
-            }
-            100% {
-                transform: translateX(0) translateY(0) rotate(0deg);
-            }
-        }
-    </style>
+/* 발자국 기본 상태 (숨김) */
+.paws {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    width: 100%;
+    font-size: 24px;
+    opacity: 0;
+}
+
+/* 마우스 올리면 발자국 등장 */
+.dog-box:hover .paws {
+    animation: pawWalk 1.5s infinite;
+    opacity: 1;
+}
+
+/* 발자국 이동 애니메이션 */
+@keyframes pawWalk {
+    0% {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(20px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(60px);
+        opacity: 0;
+    }
+}
+</style>
 </head>
+
 <body>
-    <h1> Tomcat Web Server </h1>
-    <h1>🐶 Welcome </h1>
-    <p>닥스훈트 입니다!</p>
 
+<h1>Tomcat Web Server</h1>
+<h1>🐶 Welcome</h1>
+<p>닥스훈트 입니다!</p>
+
+<div class="dog-box">
     <img src="https://contents.creators.mypetlife.co.kr/content/uploads/2021/10/09095442/img-751.jpg" alt="닥스훈트">
+    <div class="paws">🐾 🐾 🐾 🐾</div>
+</div>
 
-    <p>Powered by 🦴</p>
+<p>Powered by 🦴</p>
+
 </body>
 </html>
