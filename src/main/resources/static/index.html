@@ -1,154 +1,126 @@
-
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Hard Mode Maze Game - Multi Stage</title>
+<title>Extreme Maze Challenge</title>
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: #f0f5f9;
+    background: #222;
+    color:#fff;
     display: flex;
     flex-direction: column;
     align-items: center;
     margin: 0;
-    padding-top: 20px;
+    padding: 10px;
+}
+h1 { color:#ffbf00; }
+
+#mazeContainer {
+    width: 800px;
+    height: 800px;
+    overflow: auto;
+    border: 3px solid #fff;
+    position: relative;
+    background: #111;
 }
 
-h1 { color:#333; }
 #maze {
     display: grid;
-    grid-template-columns: repeat(12, 40px);
-    grid-template-rows: repeat(12, 40px);
-    gap: 2px;
-    margin-top: 20px;
-    position: relative;
+    grid-template-columns: repeat(50, 16px);
+    grid-template-rows: repeat(50, 16px);
+    gap:1px;
 }
 
 .cell {
-    width: 40px;
-    height: 40px;
-    border: 1px solid #ccc;
-    background: #fff;
-    box-sizing: border-box;
+    width:16px;
+    height:16px;
+    box-sizing:border-box;
 }
 
-.wall { background: #333; }
-.goal { background: #ff6347; }
-.player { background: #00bfff; display:flex; justify-content:center; align-items:center; font-size:24px; }
+.wall { background:#444; }
+.player { background:#00f; }
+.goal { background:#f00; }
+.trap { background:#ff0; }
 
 .paw {
-    position: absolute;
-    font-size: 20px;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    animation: fadePaw 1s forwards;
-    z-index: 5;
+    position:absolute;
+    font-size:12px;
+    pointer-events:none;
+    transform:translate(-50%,-50%);
+    animation:fadePaw 1s forwards;
+    z-index:5;
 }
-@keyframes fadePaw {
-    0% { opacity:1; }
-    100% { opacity:0; transform: translate(-50%, -50%) scale(0.5); }
-}
+@keyframes fadePaw {0%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50%) scale(0.5);}}
 </style>
 </head>
 <body>
 
-<h1>Hard Mode Maze - Multi Stage</h1>
-<p>💡 화살표 키로 닥스훈트를 목표까지 이동시키세요!</p>
+<h1>Extreme Maze Challenge</h1>
+<p>💀 극한 난이도! 목표까지 도달하세요!</p>
+<div id="mazeContainer">
 <div id="maze"></div>
+</div>
 <p id="stage">Stage: 1</p>
 <p id="message"></p>
 
 <script>
 // ==================== 변수 ====================
-const stages = [
-    // Stage 1 (쉬움)
-    [
-        [2,0,1,0,0,0,1,0,0,0,0,0],
-        [1,0,1,0,1,0,1,0,1,0,1,0],
-        [0,0,0,0,1,0,0,0,1,0,0,0],
-        [0,1,1,0,1,1,1,0,1,0,1,0],
-        [0,0,0,0,0,0,1,0,0,0,0,0],
-        [0,1,0,1,1,0,1,1,1,0,1,0],
-        [0,1,0,0,0,0,0,0,1,0,0,0],
-        [0,1,1,1,1,1,1,0,1,1,1,0],
-        [0,0,0,0,0,0,0,0,0,0,0,3],
-        [1,1,0,1,1,1,0,1,1,1,0,1],
-        [0,0,0,0,0,0,0,0,1,0,0,0],
-        [0,1,1,1,1,1,0,0,1,1,1,0]
-    ],
-    // Stage 2 (더 어려움)
-    [
-        [2,1,0,1,0,1,0,1,0,1,0,0],
-        [0,1,0,1,0,1,0,1,0,1,0,0],
-        [0,0,0,1,0,0,0,1,0,0,1,0],
-        [1,1,0,1,1,1,0,1,1,0,1,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,1,0,1,1,1,1,1,1,1,1,0],
-        [0,1,0,0,0,0,0,0,0,0,1,0],
-        [0,1,1,1,1,1,1,1,1,0,1,0],
-        [0,0,0,0,0,0,0,0,0,0,0,3],
-        [1,1,0,1,1,1,0,1,1,1,0,1],
-        [0,0,0,0,0,0,0,0,1,0,0,0],
-        [0,1,1,1,1,1,0,0,1,1,1,0]
-    ]
-];
-
-let currentStage = 0;
-let playerPos = {row:0, col:0};
+const size = 50; // 50x50 극한 미로
+let playerPos = {row:0,col:0};
 let cells = [];
+let stage = 1;
+let map = [];
+const mazeDiv = document.getElementById("maze");
 
-// ==================== 게임 초기화 ====================
-function loadStage(stageIndex){
-    const mazeDiv = document.getElementById("maze");
-    mazeDiv.innerHTML="";
+// ==================== 미로 생성 ====================
+function generateMaze(){
+    map=[];
     cells=[];
-
-    const map = stages[stageIndex];
-    const rows = map.length;
-    const cols = map[0].length;
-
-    for(let r=0;r<rows;r++){
-        for(let c=0;c<cols;c++){
+    mazeDiv.innerHTML="";
+    for(let r=0;r<size;r++){
+        map[r]=[];
+        for(let c=0;c<size;c++){
             const cell = document.createElement("div");
             cell.className="cell";
             mazeDiv.appendChild(cell);
             cells.push(cell);
 
-            if(map[r][c]===1) cell.classList.add("wall");
-            if(map[r][c]===3) cell.classList.add("goal");
-            if(map[r][c]===2){
-                cell.classList.add("player");
-                cell.innerHTML="🐶";
-                playerPos={row:r,col:c};
-            }
+            // 경계 + 무작위 벽
+            if(r===0||r===size-1||c===0||c===size-1 || Math.random()<0.3+stage*0.05){
+                cell.classList.add("wall");
+                map[r][c]=1;
+            } else map[r][c]=0;
         }
     }
-    document.getElementById("stage").innerText="Stage: "+(stageIndex+1);
-    document.getElementById("message").innerText="";
-}
 
-loadStage(currentStage);
+    // 시작점
+    map[1][1]=2;
+    cells[1*size+1].classList.add("player");
+    cells[1*size+1].innerHTML="🐶";
+    playerPos={row:1,col:1};
+
+    // 목표
+    const goalRow=size-2;
+    const goalCol=size-2;
+    map[goalRow][goalCol]=3;
+    cells[goalRow*size+goalCol].classList.add("goal");
+}
 
 // ==================== 이동 ====================
 function movePlayer(dr,dc){
-    const map = stages[currentStage];
-    const rows = map.length;
-    const cols = map[0].length;
-
     const newRow = playerPos.row + dr;
     const newCol = playerPos.col + dc;
-    if(newRow<0 || newRow>=rows || newCol<0 || newCol>=cols) return;
+    if(newRow<0||newRow>=size||newCol<0||newCol>=size) return;
     if(map[newRow][newCol]===1) return;
 
-    const oldCell = cells[playerPos.row*cols + playerPos.col];
+    const oldCell = cells[playerPos.row*size + playerPos.col];
     const paw = document.createElement("div");
     paw.className="paw";
     paw.innerHTML="🐾";
-    paw.style.left = oldCell.offsetLeft + 20 + "px";
-    paw.style.top = oldCell.offsetTop + 20 + "px";
-    document.getElementById("maze").appendChild(paw);
+    paw.style.left = oldCell.offsetLeft + 8 + "px";
+    paw.style.top = oldCell.offsetTop + 8 + "px";
+    mazeDiv.appendChild(paw);
     setTimeout(()=>paw.remove(),2000);
 
     oldCell.classList.remove("player");
@@ -157,18 +129,18 @@ function movePlayer(dr,dc){
     playerPos.row=newRow;
     playerPos.col=newCol;
 
-    const newCell = cells[newRow*cols + newCol];
+    const newCell = cells[newRow*size + newCol];
     newCell.classList.add("player");
     newCell.innerHTML="🐶";
 
     if(map[newRow][newCol]===3){
         document.getElementById("message").innerText="🎉 스테이지 클리어!";
-        currentStage++;
-        if(currentStage>=stages.length){
-            setTimeout(()=>alert("🏆 모든 스테이지 클리어! 축하합니다!"),300);
-        } else {
-            setTimeout(()=>loadStage(currentStage),500);
-        }
+        stage++;
+        setTimeout(()=>{
+            generateMaze();
+            document.getElementById("stage").innerText="Stage: "+stage;
+            document.getElementById("message").innerText="";
+        },500);
     }
 }
 
@@ -179,6 +151,9 @@ document.addEventListener("keydown", e=>{
     if(e.key==="ArrowLeft") movePlayer(0,-1);
     if(e.key==="ArrowRight") movePlayer(0,1);
 });
+
+// ==================== 게임 시작 ====================
+generateMaze();
 </script>
 
 </body>
