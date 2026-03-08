@@ -2,158 +2,210 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Extreme Maze Challenge</title>
+<title>Extreme Maze Game</title>
+
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #222;
-    color:#fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    padding: 10px;
-}
-h1 { color:#ffbf00; }
 
-#mazeContainer {
-    width: 800px;
-    height: 800px;
-    overflow: auto;
-    border: 3px solid #fff;
-    position: relative;
-    background: #111;
+body{
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
 }
 
-#maze {
-    display: grid;
-    grid-template-columns: repeat(50, 16px);
-    grid-template-rows: repeat(50, 16px);
-    gap:1px;
+#game{
+    width:600px;
+    height:600px;
+    margin:auto;
+    overflow:hidden;
+    border:3px solid white;
+    position:relative;
 }
 
-.cell {
-    width:16px;
-    height:16px;
-    box-sizing:border-box;
+#maze{
+    position:absolute;
+    display:grid;
 }
 
-.wall { background:#444; }
-.player { background:#00f; }
-.goal { background:#f00; }
-.trap { background:#ff0; }
+.cell{
+    width:20px;
+    height:20px;
+}
 
-.paw {
+.wall{background:#333;}
+.path{background:#1a1a1a;}
+
+.goal{background:red;}
+
+.player{
+    position:absolute;
+    width:20px;
+    height:20px;
+    background:#00bfff;
+    border-radius:50%;
+    z-index:10;
+}
+
+.paw{
     position:absolute;
     font-size:12px;
+    opacity:0.8;
     pointer-events:none;
-    transform:translate(-50%,-50%);
-    animation:fadePaw 1s forwards;
-    z-index:5;
 }
-@keyframes fadePaw {0%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50%) scale(0.5);}}
+
 </style>
 </head>
+
 <body>
 
-<h1>Extreme Maze Challenge</h1>
-<p>💀 극한 난이도! 목표까지 도달하세요!</p>
-<div id="mazeContainer">
+<h1>🔥 Extreme Maze Challenge</h1>
+<p>Arrow Keys 로 이동</p>
+<p id="stage">Stage 1</p>
+
+<div id="game">
 <div id="maze"></div>
+<div id="player"></div>
 </div>
-<p id="stage">Stage: 1</p>
-<p id="message"></p>
 
 <script>
-// ==================== 변수 ====================
-const size = 50; // 50x50 극한 미로
-let playerPos = {row:0,col:0};
-let cells = [];
-let stage = 1;
-let map = [];
-const mazeDiv = document.getElementById("maze");
 
-// ==================== 미로 생성 ====================
+let stage=1
+let size=21
+let maze=[]
+let player={x:1,y:1}
+
+const mazeDiv=document.getElementById("maze")
+const playerDiv=document.getElementById("player")
+
 function generateMaze(){
-    map=[];
-    cells=[];
-    mazeDiv.innerHTML="";
-    for(let r=0;r<size;r++){
-        map[r]=[];
-        for(let c=0;c<size;c++){
-            const cell = document.createElement("div");
-            cell.className="cell";
-            mazeDiv.appendChild(cell);
-            cells.push(cell);
 
-            // 경계 + 무작위 벽
-            if(r===0||r===size-1||c===0||c===size-1 || Math.random()<0.3+stage*0.05){
-                cell.classList.add("wall");
-                map[r][c]=1;
-            } else map[r][c]=0;
-        }
-    }
+size=21+stage*4
+maze=[]
+mazeDiv.innerHTML=""
 
-    // 시작점
-    map[1][1]=2;
-    cells[1*size+1].classList.add("player");
-    cells[1*size+1].innerHTML="🐶";
-    playerPos={row:1,col:1};
-
-    // 목표
-    const goalRow=size-2;
-    const goalCol=size-2;
-    map[goalRow][goalCol]=3;
-    cells[goalRow*size+goalCol].classList.add("goal");
+for(let y=0;y<size;y++){
+maze[y]=[]
+for(let x=0;x<size;x++){
+maze[y][x]=1
+}
 }
 
-// ==================== 이동 ====================
-function movePlayer(dr,dc){
-    const newRow = playerPos.row + dr;
-    const newCol = playerPos.col + dc;
-    if(newRow<0||newRow>=size||newCol<0||newCol>=size) return;
-    if(map[newRow][newCol]===1) return;
+function carve(x,y){
+let dirs=[[2,0],[-2,0],[0,2],[0,-2]]
+dirs.sort(()=>Math.random()-0.5)
 
-    const oldCell = cells[playerPos.row*size + playerPos.col];
-    const paw = document.createElement("div");
-    paw.className="paw";
-    paw.innerHTML="🐾";
-    paw.style.left = oldCell.offsetLeft + 8 + "px";
-    paw.style.top = oldCell.offsetTop + 8 + "px";
-    mazeDiv.appendChild(paw);
-    setTimeout(()=>paw.remove(),2000);
+for(let d of dirs){
+let nx=x+d[0]
+let ny=y+d[1]
 
-    oldCell.classList.remove("player");
-    oldCell.innerHTML="";
-
-    playerPos.row=newRow;
-    playerPos.col=newCol;
-
-    const newCell = cells[newRow*size + newCol];
-    newCell.classList.add("player");
-    newCell.innerHTML="🐶";
-
-    if(map[newRow][newCol]===3){
-        document.getElementById("message").innerText="🎉 스테이지 클리어!";
-        stage++;
-        setTimeout(()=>{
-            generateMaze();
-            document.getElementById("stage").innerText="Stage: "+stage;
-            document.getElementById("message").innerText="";
-        },500);
-    }
+if(nx>0 && ny>0 && nx<size-1 && ny<size-1 && maze[ny][nx]==1){
+maze[ny][nx]=0
+maze[y+d[1]/2][x+d[0]/2]=0
+carve(nx,ny)
+}
+}
 }
 
-// ==================== 키보드 ====================
-document.addEventListener("keydown", e=>{
-    if(e.key==="ArrowUp") movePlayer(-1,0);
-    if(e.key==="ArrowDown") movePlayer(1,0);
-    if(e.key==="ArrowLeft") movePlayer(0,-1);
-    if(e.key==="ArrowRight") movePlayer(0,1);
-});
+maze[1][1]=0
+carve(1,1)
 
-// ==================== 게임 시작 ====================
-generateMaze();
+maze[size-2][size-2]=2
+
+drawMaze()
+
+player={x:1,y:1}
+updateCamera()
+
+}
+
+function drawMaze(){
+
+mazeDiv.style.gridTemplateColumns=`repeat(${size},20px)`
+
+for(let y=0;y<size;y++){
+for(let x=0;x<size;x++){
+
+let cell=document.createElement("div")
+cell.classList.add("cell")
+
+if(maze[y][x]==1) cell.classList.add("wall")
+else cell.classList.add("path")
+
+if(maze[y][x]==2) cell.classList.add("goal")
+
+mazeDiv.appendChild(cell)
+
+}
+}
+
+}
+
+function updateCamera(){
+
+playerDiv.style.left="290px"
+playerDiv.style.top="290px"
+
+mazeDiv.style.left=300-player.x*20+"px"
+mazeDiv.style.top=300-player.y*20+"px"
+
+}
+
+function move(dx,dy){
+
+let nx=player.x+dx
+let ny=player.y+dy
+
+if(maze[ny][nx]==1) return
+
+createPaw()
+
+player.x=nx
+player.y=ny
+
+updateCamera()
+
+if(maze[ny][nx]==2){
+
+alert("🎉 Stage Clear!")
+
+stage++
+
+document.getElementById("stage").innerText="Stage "+stage
+
+generateMaze()
+
+}
+
+}
+
+function createPaw(){
+
+let paw=document.createElement("div")
+
+paw.className="paw"
+paw.innerText="🐾"
+
+paw.style.left="295px"
+paw.style.top="295px"
+
+document.getElementById("game").appendChild(paw)
+
+setTimeout(()=>paw.remove(),1000)
+
+}
+
+document.addEventListener("keydown",e=>{
+
+if(e.key=="ArrowUp") move(0,-1)
+if(e.key=="ArrowDown") move(0,1)
+if(e.key=="ArrowLeft") move(-1,0)
+if(e.key=="ArrowRight") move(1,0)
+
+})
+
+generateMaze()
+
 </script>
 
 </body>
